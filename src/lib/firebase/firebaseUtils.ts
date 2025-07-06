@@ -11,6 +11,9 @@ import {
   doc,
   updateDoc,
   deleteDoc,
+  query,
+  where,
+  getDoc,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
@@ -45,6 +48,25 @@ export const updateDocument = (collectionName: string, id: string, data: any) =>
 
 export const deleteDocument = (collectionName: string, id: string) =>
   deleteDoc(doc(db, collectionName, id));
+
+export const getUserAnalyses = async (userId: string) => {
+  const q = query(collection(db, "analyses"), where("userId", "==", userId));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
+};
+
+export const getAnalysisById = async (id: string) => {
+  const docRef = doc(db, "analyses", id);
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    return { id: docSnap.id, ...docSnap.data() };
+  } else {
+    return null;
+  }
+};
 
 // Storage functions
 export const uploadFile = async (file: File, path: string) => {
