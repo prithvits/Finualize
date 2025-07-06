@@ -68,9 +68,9 @@ export default function SankeyDiagram({
 
     // Process the data
     const { nodes, links } = sankeyGenerator({
-      nodes: data.nodes.map(d => Object.assign({}, d)),
+      nodes: data.nodes.map(d => ({ ...d })),
       links: sankeyLinks
-    });
+    } as any);
 
     // Create color map for specific nodes
     const nodeColors: Record<string, string> = {

@@ -57,7 +57,7 @@ export default function AnalysisDetailPage() {
         setLoading(false);
         return;
       }
-      if (doc.userId !== user.uid) {
+      if ((doc as any).userId !== user.uid) {
         setError('You are not authorized to view this analysis.');
         setLoading(false);
         return;
