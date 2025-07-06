@@ -26,11 +26,13 @@ body {
     rgb(var(--background-start-rgb));
 }
 
-body, html, * {
-  color: #000 !important;
-}
-
 @layer utilities {
+  .text-on-light {
+    color: #111;
+  }
+  .text-on-dark {
+    color: #fff;
+  }
   .text-balance {
     text-wrap: balance;
   }

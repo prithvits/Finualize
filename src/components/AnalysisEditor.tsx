@@ -40,9 +40,9 @@ function FlowDataTable({ flows }: { flows: { source: string; target: string; val
         <tbody>
           {flows.map((row, idx) => (
             <tr key={idx}>
-              <td className="px-4 py-2">{row.source}</td>
-              <td className="px-4 py-2">{row.target}</td>
-              <td className="px-4 py-2">{row.value}</td>
+              <td className="px-4 py-2 text-gray-900">{row.source}</td>
+              <td className="px-4 py-2 text-gray-900">{row.target}</td>
+              <td className="px-4 py-2 text-gray-900">{row.value}</td>
             </tr>
           ))}
         </tbody>
@@ -126,7 +126,7 @@ export default function AnalysisEditor({
         {editingName ? (
           <div className="flex flex-col items-center w-full">
             <input
-              className="text-4xl font-bold text-center mb-2 border-b-2 border-blue-400 focus:outline-none bg-transparent w-full max-w-md"
+              className="text-4xl font-bold text-center mb-2 border-b-2 border-blue-400 focus:outline-none bg-transparent w-full max-w-md text-black"
               value={name}
               onChange={e => setName(e.target.value)}
               disabled={saving || loading}
@@ -154,7 +154,7 @@ export default function AnalysisEditor({
           </div>
         ) : (
           <div className="flex items-center gap-3">
-            <h1 className="text-4xl font-bold text-center mb-0">{name}</h1>
+            <h1 className="text-4xl font-bold text-center mb-0 text-black">{name}</h1>
             <button
               className="ml-2 text-blue-600 hover:text-blue-800 px-2 py-1 rounded border border-blue-200 bg-blue-50"
               onClick={() => setEditingName(true)}
@@ -167,7 +167,7 @@ export default function AnalysisEditor({
       </div>
       <div className="w-full bg-white rounded-xl shadow p-6 flex flex-col items-center">
         <div className="flex items-center w-full mb-4">
-          <h2 className="text-xl font-semibold mr-2">P&amp;L Table</h2>
+          <h2 className="text-xl font-semibold mr-2 text-black">P&amp;L Table</h2>
           {!isEditingTable && (
             <button
               className="ml-2 text-blue-600 hover:text-blue-800 px-2 py-1 rounded border border-blue-200 bg-blue-50"
@@ -181,16 +181,16 @@ export default function AnalysisEditor({
         <table className="min-w-full bg-white rounded-xl shadow overflow-hidden">
           <thead>
             <tr className="bg-gray-100">
-              <th className="px-4 py-2 text-left">Item</th>
-              <th className="px-4 py-2 text-left">Value</th>
+              <th className="px-4 py-2 text-left text-black">Item</th>
+              <th className="px-4 py-2 text-left text-black">Value</th>
             </tr>
           </thead>
           <tbody>
             {isEditingTable ? (
               plRows.map((row, idx) => (
                 <tr key={row.label}>
-                  <td className="px-4 py-2 font-medium">{row.label}</td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-2 font-medium text-gray-900">{row.label}</td>
+                  <td className="px-4 py-2 text-gray-900">
                     {idx < 3 ? (
                       <input
                         type="number"
@@ -213,8 +213,8 @@ export default function AnalysisEditor({
             ) : (
               plRows.map((row) => (
                 <tr key={row.label}>
-                  <td className="px-4 py-2 font-medium">{row.label}</td>
-                  <td className="px-4 py-2">{row.value}</td>
+                  <td className="px-4 py-2 font-medium text-gray-900">{row.label}</td>
+                  <td className="px-4 py-2 text-gray-900">{row.value}</td>
                 </tr>
               ))
             )}

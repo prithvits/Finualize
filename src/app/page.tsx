@@ -3,7 +3,7 @@
 import { useAuth } from '../lib/hooks/useAuth';
 import SignInWithGoogle from '../components/SignInWithGoogle';
 import SankeyDiagram from '../components/SankeyDiagram';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { addDocument, getDocuments, getUserAnalyses, logoutUser } from '../lib/firebase/firebaseUtils';
 import Link from 'next/link';
 
@@ -80,6 +80,187 @@ function FlowDataTable({ flows }: { flows: { source: string; target: string; val
         </tbody>
       </table>
     </div>
+  );
+}
+
+// FallingStars background animation component
+function FallingStars() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let animationFrameId: number;
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    const numStars = 80;
+    const stars = Array.from({ length: numStars }, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      r: Math.random() * 1.2 + 0.5,
+      speed: Math.random() * 0.7 + 0.3,
+      opacity: Math.random() * 0.5 + 0.5,
+    }));
+
+    function draw() {
+      if (!ctx) return;
+      ctx.clearRect(0, 0, width, height);
+      for (const star of stars) {
+        ctx.globalAlpha = star.opacity;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.r, 0, 2 * Math.PI);
+        ctx.fillStyle = '#fff';
+        ctx.shadowColor = '#fff';
+        ctx.shadowBlur = 8;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function update() {
+      for (const star of stars) {
+        star.y += star.speed;
+        if (star.y > height) {
+          star.y = -2;
+          star.x = Math.random() * width;
+        }
+      }
+    }
+
+    function animate() {
+      update();
+      draw();
+      animationFrameId = requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    function handleResize() {
+      if (!canvas) return;
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+    }
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 w-full h-full pointer-events-none z-0"
+      style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh' }}
+      aria-hidden="true"
+    />
+  );
+}
+
+// MorphingShape: morphs through 8 different polygons (triangle to decagon)
+function MorphingShape() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let animationFrameId: number;
+    let width = canvas.offsetWidth;
+    let height = canvas.offsetHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    // Generate polygons from 3 to 10 sides, all with 32 points for smooth morphing
+    function makePolygon(sides: number, points: number) {
+      return Array.from({ length: points }, (_, i) => {
+        const angle = (2 * Math.PI * i) / points;
+        // For points beyond the number of sides, repeat the last vertex
+        const vertexIdx = Math.floor((i * sides) / points);
+        const vertexAngle = (2 * Math.PI * vertexIdx) / sides - Math.PI / 2;
+        return { x: Math.cos(vertexAngle), y: Math.sin(vertexAngle) };
+      });
+    }
+    const points = 32;
+    const polygons = Array.from({ length: 8 }, (_, i) => makePolygon(i + 3, points));
+
+    let shapeIdx = 0;
+    let nextIdx = 1;
+    let morph = 0;
+    let morphDir = 1;
+    const morphSpeed = 0.012;
+
+    function lerp(a: number, b: number, t: number) {
+      return a + (b - a) * t;
+    }
+
+    function draw() {
+      if (!ctx) return;
+      ctx.clearRect(0, 0, width, height);
+      ctx.save();
+      ctx.translate(width / 2, height / 2);
+      const size = Math.min(width, height) * 0.36;
+      ctx.beginPath();
+      for (let i = 0; i < points; i++) {
+        const p1 = polygons[shapeIdx][i];
+        const p2 = polygons[nextIdx][i];
+        const x = lerp(p1.x, p2.x, morph) * size;
+        const y = lerp(p1.y, p2.y, morph) * size;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(34,197,94,0.7)'; // green-500 with opacity
+      ctx.shadowColor = '#34d399';
+      ctx.shadowBlur = 24;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    }
+
+    function animate() {
+      morph += morphDir * morphSpeed;
+      if (morph >= 1) {
+        morph = 0;
+        shapeIdx = nextIdx;
+        nextIdx = (nextIdx + 1) % polygons.length;
+      }
+      draw();
+      animationFrameId = requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    function handleResize() {
+      if (!canvas) return;
+      width = canvas.offsetWidth;
+      height = canvas.offsetHeight;
+      canvas.width = width;
+      canvas.height = height;
+    }
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="w-full h-full"
+      style={{ width: '100%', height: '100%' }}
+      aria-hidden="true"
+    />
   );
 }
 
@@ -191,12 +372,12 @@ export default function Home() {
         >
           Sign Out
         </button>
-        <h1 className="text-5xl font-extrabold text-center mt-12 mb-2">Finualize</h1>
-        <p className="text-xl text-center mb-8">Extract P&amp;L data from QuickBooks screenshots and create interactive visualizations</p>
-        <div className="mb-4 text-center text-lg font-medium">Welcome, {user.displayName} <span className="text-gray-500 text-base">{user.email}</span></div>
+        <h1 className="text-5xl font-extrabold text-black text-center mt-12 mb-2">Finualize</h1>
+        <p className="text-xl text-center mb-8 text-gray-700">Extract P&amp;L data from QuickBooks screenshots and create interactive visualizations</p>
+        <div className="mb-4 text-center text-lg font-medium text-gray-800">Welcome, {user.displayName} <span className="text-gray-500 text-base">{user.email}</span></div>
         <div className="w-full max-w-4xl mt-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold">Your Analyses</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Your Analyses</h2>
             <button
               disabled={loading || !user || !user.uid}
               onClick={async () => {
@@ -225,15 +406,15 @@ export default function Home() {
             </button>
           </div>
           {analysesLoading ? (
-            <div className="text-center py-8">Loading...</div>
+            <div className="text-center py-8 text-gray-700">Loading...</div>
           ) : analyses.length === 0 ? (
             <div className="text-center py-8 text-gray-500">No analyses found. Create a new analysis to get started!</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {analyses.map(analysis => (
                 <div key={analysis.id} className="bg-white rounded-xl shadow p-6 flex flex-col gap-2">
-                  <div className="font-semibold text-lg">{analysis.name}</div>
-                  <div className="text-gray-500 text-sm">Created: {new Date(analysis.createdAt).toLocaleString()}</div>
+                  <div className="font-semibold text-lg text-gray-900">{analysis.name}</div>
+                  <div className="text-gray-600 text-sm">Created: {new Date(analysis.createdAt).toLocaleString()}</div>
                   <Link href={`/analysis/${analysis.id}`} className="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition text-center w-fit">View / Edit</Link>
                 </div>
               ))}
@@ -246,68 +427,37 @@ export default function Home() {
 
   // Login Page
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-md w-full">
-        {/* Logo and Title */}
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <h1 className="text-4xl font-bold text-black mb-2">Finualize</h1>
-          <p className="text-lg text-black">
-            P&L Data Extraction & Visualization
-          </p>
-        </div>
-
-        {/* Login Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-semibold text-black mb-2">
-              Welcome Back
-            </h2>
-            <p className="text-black">
-              Sign in to access your P&amp;L data and visualizations
-            </p>
-          </div>
-
-          {/* Google Sign In Button */}
-          <div className="mb-6">
-            <SignInWithGoogle />
-          </div>
-
-          {/* Features Preview */}
-          <div className="space-y-3 text-sm text-black">
-            <div className="flex items-center">
-              <svg className="w-4 h-4 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              AI-powered P&L data extraction
-            </div>
-            <div className="flex items-center">
-              <svg className="w-4 h-4 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Interactive data tables
-            </div>
-            <div className="flex items-center">
-              <svg className="w-4 h-4 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Custom visualizations & charts
-            </div>
-            <div className="flex items-center">
-              <svg className="w-4 h-4 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Sankey diagram generation
-            </div>
+    <div className="min-h-screen bg-black flex flex-col relative p-4 overflow-hidden">
+      <FallingStars />
+      {/* Google Sign In Button - Top Right */}
+      <div className="absolute top-6 right-6 z-50">
+        <SignInWithGoogle />
+      </div>
+      {/* Top Left Brand */}
+      <div className="absolute top-6 left-6 z-40">
+        <h1 className="text-3xl font-extrabold text-green-400 tracking-tight">Finualize</h1>
+      </div>
+      <div className="flex flex-1 flex-col items-center justify-center w-full">
+        {/* Title and Subtitle with Emoji */}
+        <div className="mb-10 flex flex-col items-center w-full">
+          <div className="flex items-center justify-center mb-4">
+            <span className="text-2xl mr-2">🧮</span>
+            <p className="text-2xl text-gray-100 font-medium text-center">P&L Data Extraction & Visualization</p>
           </div>
         </div>
-
+        {/* Morphing shape animation with no background box */}
+        <div className="w-full max-w-md h-32 flex items-center justify-center mb-8">
+          <MorphingShape />
+        </div>
+        {/* Features Preview */}
+        <div className="space-y-4 text-lg text-white font-medium text-center max-w-md mb-8">
+          <div>✔️ AI-powered P&L data extraction</div>
+          <div>✔️ Interactive data tables</div>
+          <div>✔️ Custom visualizations & charts</div>
+          <div>✔️ Sankey diagram generation</div>
+        </div>
         {/* Footer */}
-        <div className="text-center mt-6 text-sm text-black">
+        <div className="text-center mt-8 text-sm text-gray-400">
           <p>Powered by Next.js, Firebase & OpenAI</p>
         </div>
       </div>

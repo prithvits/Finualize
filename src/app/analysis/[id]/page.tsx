@@ -74,7 +74,7 @@ export default function AnalysisDetailPage() {
   };
 
   if (loading || authLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center text-gray-700">Loading...</div>;
   }
   if (error) {
     return <div className="min-h-screen flex items-center justify-center text-red-600">{error}</div>;
